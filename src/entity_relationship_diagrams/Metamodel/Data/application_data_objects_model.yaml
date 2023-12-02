@@ -33,7 +33,6 @@ entities:
             }
           
           )
-          
 
       ListOfApplicationDataObjectsFilteredBySystemID:
         title: Таблица объектов приложения, отфильтрованных по ID приложения/сервиса
