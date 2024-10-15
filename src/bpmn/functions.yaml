@@ -1,0 +1,83 @@
+functions:
+
+  GetBusinessProcessLink:
+    title: Получение ссылки на документ с бизнес-процессом bpmnjs
+    params:
+      - alias: datalake
+        title: $
+        required: true
+      - alias: self
+        title: $self
+        required: true
+    result:
+      type: string
+    code: >
+      (
+          $doc_id := self.origin.bpmnjs;
+          $result := "/docs/" & datalake.docs.$spread().({"id": $keys()[0], "source": *.source})[source=$doc_id].id;
+      )
+
+  GetBusinessProcessEntities:
+    title: Получение описание бизнес-процесса как объекта
+    params:
+      - alias: business_processes
+        title: Бизнес-процесс
+        required: true
+      - alias: doc_link
+        title: Ссылка на бизнес-процесс как объект архитектурного репозитория, "/docs/[ключ]" для возможности отображение гиперссылки
+        required: true
+    result:
+      type: object
+    code: >
+      (
+        $doc_link := doc_link;
+        $definitions := business_processes."definitions".*;
+      
+        /* Универсальный метед получения описания сущностей схемы, имеющий структуру id и name например,
+          - <task id="Activity_*" name="Шаг 1">
+          - <lane id="Lane_*" name="Инициатор договора"> */
+        $GetEntities := function($data) {(
+          $data.({ "item_id": id, "item_name": $replace(name, "\n", " ") })
+        )};
+      
+        /*  Входящие и исходящие процессы только с ID объектов данных */
+        $sub_processes := $definitions."subProcess".(
+          {
+            "id": *.$.id,
+            "name": $replace(*.$.name, "\n", " "),
+            "is_incoming": $exists(outgoing),
+            "data_objects": $exists(outgoing) ? dataOutputAssociation.targetRef.({"data_object_id": $}) : dataInputAssociation.sourceRef.({"data_object_id": $})
+          });
+      
+        /* Объекты данных входящих и исходящих процессов */
+        $sub_process_data_objects := $definitions.dataObjectReference.*.$.( {"id": id, "name": name, "ref": dataObjectRef });
+      
+        /* Получение наименование объекта данных входящих и исходящих процессов */
+        $GetSubProcessDataObjectName := function($id) {( $sub_process_data_objects[id=$id].name )};
+      
+        /* Входящие и исходящие процессы с ID и наименованием объектов данных */
+        $sub_processes_total := $sub_processes.(
+          {
+            "id": id,
+            "name": name,
+            "is_incoming": is_incoming,
+            "data_objects": data_objects.(
+              {
+                "data_object_id": data_object_id,
+                "data_object_name": $GetSubProcessDataObjectName(data_object_id)
+              })
+          });
+      
+        /* Итоговая выборака набора данных */
+        $definitions."participant"."$".(
+          {
+              "business_process_id": id,                                            /* Идентификатор процесса */
+              "business_process_name": name,                                        /* Наименование процесса */
+              "business_process_link": $doc_link, 
+              "lanes": $GetEntities($definitions."laneSet"."lane"."$"),             /* Роли (функциональые дорожки) */
+              "tasks": $GetEntities($definitions."task"."$"),                       /* Шаги процесса */
+              "data_objects": $GetEntities($definitions."dataObjectReference"."$"), /* Объекты данных */
+              "subProcess": $sub_processes_total                                    /* Входящие и исходящие процессы */
+          });
+      
+      )

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="sid-38422fae-e03e-43a3-bef4-bd33b32041b2" targetNamespace="http://bpmn.io/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="17.6.2">
+  <collaboration id="Collaboration_0eqte3q">
+    <participant id="Participant_0nb7bm5" name="УД.10.2 Регистрация спецификации рамочного договора депозита" processRef="Process_0gxyh5m" />
+  </collaboration>
+  <process id="Process_0gxyh5m">
+    <laneSet id="LaneSet_0qyxhtf">
+      <lane id="Lane_0r8hoic" name="Инициатор договора">
+        <flowNodeRef>Event_0fze5kl</flowNodeRef>
+        <flowNodeRef>Activity_1r1hy24</flowNodeRef>
+        <flowNodeRef>Event_0ghl5gj</flowNodeRef>
+        <flowNodeRef>Activity_1a0oabv</flowNodeRef>
+      </lane>
+    </laneSet>
+    <sequenceFlow id="Flow_0vtyd38" sourceRef="Event_0fze5kl" targetRef="Activity_1r1hy24" />
+    <sequenceFlow id="Flow_1fio0n3" sourceRef="Activity_1r1hy24" targetRef="Event_0ghl5gj" />
+    <subProcess id="Activity_1a0oabv" name="УД.10.4 Регистрация рамочного договора депозита">
+      <outgoing>Flow_0epoivd</outgoing>
+      <dataOutputAssociation id="DataOutputAssociation_11wi5k4">
+        <targetRef>DataObjectReference_0haxmco</targetRef>
+      </dataOutputAssociation>
+      <startEvent id="Event_0t69vsf" />
+    </subProcess>
+    <startEvent id="Event_0fze5kl">
+      <outgoing>Flow_0vtyd38</outgoing>
+    </startEvent>
+    <task id="Activity_1r1hy24" name="Шаг процесса">
+      <incoming>Flow_0vtyd38</incoming>
+      <incoming>Flow_0epoivd</incoming>
+      <outgoing>Flow_1fio0n3</outgoing>
+      <property id="Property_1hbmsuc" name="__targetRef_placeholder" />
+      <dataInputAssociation id="DataInputAssociation_16gud1k">
+        <sourceRef>DataObjectReference_0haxmco</sourceRef>
+        <targetRef>Property_1hbmsuc</targetRef>
+      </dataInputAssociation>
+    </task>
+    <endEvent id="Event_0ghl5gj">
+      <incoming>Flow_1fio0n3</incoming>
+    </endEvent>
+    <sequenceFlow id="Flow_0epoivd" sourceRef="Activity_1a0oabv" targetRef="Activity_1r1hy24" />
+    <dataObjectReference id="DataObjectReference_0haxmco" name="Рамочный договор депозита в статусе «Утвержден»" dataObjectRef="DataObject_19gnjkq" />
+    <dataObject id="DataObject_19gnjkq" />
+  </process>
+  <bpmndi:BPMNDiagram id="BpmnDiagram_1">
+    <bpmndi:BPMNPlane id="BpmnPlane_1" bpmnElement="Collaboration_0eqte3q">
+      <bpmndi:BPMNShape id="Participant_0p4dbua_di" bpmnElement="Participant_0nb7bm5" isHorizontal="true">
+        <dc:Bounds x="80" y="40" width="530" height="550" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0r8hoic_di" bpmnElement="Lane_0r8hoic" isHorizontal="true">
+        <dc:Bounds x="110" y="40" width="500" height="550" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_15v15kt_di" bpmnElement="Activity_1a0oabv" isExpanded="false">
+        <dc:Bounds x="310" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0fze5kl_di" bpmnElement="Event_0fze5kl">
+        <dc:Bounds x="192" y="382" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1r1hy24_di" bpmnElement="Activity_1r1hy24">
+        <dc:Bounds x="310" y="360" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0ghl5gj_di" bpmnElement="Event_0ghl5gj">
+        <dc:Bounds x="532" y="382" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataObjectReference_0haxmco_di" bpmnElement="DataObjectReference_0haxmco">
+        <dc:Bounds x="452" y="205" width="36" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="495" y="203" width="90" height="53" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0vtyd38_di" bpmnElement="Flow_0vtyd38">
+        <di:waypoint x="228" y="400" />
+        <di:waypoint x="310" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1fio0n3_di" bpmnElement="Flow_1fio0n3">
+        <di:waypoint x="410" y="400" />
+        <di:waypoint x="532" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0epoivd_di" bpmnElement="Flow_0epoivd">
+        <di:waypoint x="360" y="160" />
+        <di:waypoint x="360" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_11wi5k4_di" bpmnElement="DataOutputAssociation_11wi5k4">
+        <di:waypoint x="380" y="160" />
+        <di:waypoint x="380" y="190" />
+        <di:waypoint x="470" y="190" />
+        <di:waypoint x="470" y="205" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataInputAssociation_16gud1k_di" bpmnElement="DataInputAssociation_16gud1k">
+        <di:waypoint x="470" y="255" />
+        <di:waypoint x="470" y="280" />
+        <di:waypoint x="380" y="280" />
+        <di:waypoint x="380" y="360" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1nk6el3">
+    <bpmndi:BPMNPlane id="BPMNPlane_0k9qss6" bpmnElement="Activity_1a0oabv">
+      <bpmndi:BPMNShape id="Event_0t69vsf_di" bpmnElement="Event_0t69vsf">
+        <dc:Bounds x="180" y="160" width="36" height="36" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

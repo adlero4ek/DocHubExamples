@@ -1,0 +1,117 @@
+docs:
+
+  #  Реестр бизнес-процессов
+  business_processes_list:
+    source: business_processes.dataset.business_processes_list
+    location: "10. Реестр бизнес-процессов"
+    type: table
+    headers:
+      - value: business_process_name
+        text: Бизнес-процесс
+        link: business_process_card
+
+  # Контроль заполнения бизнес-процессов
+  business_process_main_card:
+    source: templates/business_processes_card.md
+    type: markdown
+
+    # Контроль заполнения бизнес-процессов
+  business_process_control_of_filling:
+    source: templates/bpmn.md
+    type: markdown
+    location: "20. Контроль заполнения бизнес-процессов"
+
+  # Ошибки замкнутости бизнес-процессов
+  business_process_closure_errors:
+    source: business_processes.dataset.business_process_closure_errors
+    type: table
+    headers:
+      - value: business_process_name
+        text: Исходный бизнес-процесс
+        link: business_process_link
+      - value: sub_process_name
+        text: Связанный бизнес-процесс
+      - value: data_object_name
+        text: Объект связанного бизнес-процесс
+      - value: sub_process_is_incoming
+        text: Это входящий
+
+  # Входящие или исходящие процессы без объектов или связей с шагами основного процесса
+  business_process_without_objects_or_links:
+    source: business_processes.dataset.business_processes_without_objects_or_links
+    type: table
+    headers:
+      - value: business_process_name
+        text: Исходный бизнес-процесс
+        link: business_process_link
+      - value: sub_process_name
+        text: Связанный бизнес-процесс
+      - value: sub_process_is_incoming
+        text: Это входящий
+
+  # Входящие или исходящие процессы без объектов или связей с шагами основного процесса
+  business_processes.doc.sub_process:
+    origin:
+      datalake: business_processes.dataset.main_dataset
+    type: table
+    headers:
+      - value: sub_process_name
+        text: Бизнес-процесс
+        link: sub_process_link
+    source: >
+      (
+        /* Входящие параметры */
+        $doc_id := $params.doc_id;        
+        $incoming := $params.incoming = "true" ? true : false;
+      
+        /* Бизнес-процессы */
+        $datalake := datalake;        
+
+        /* Получение ссылки расширенную карточку (бизнес-процесс) */
+        $GetSubBusinessProcessLink := function($name) {(
+          $link := $datalake[business_process_name=$name].business_process_link;  
+          $link := "/entities/extended_business_processes_card/blank?id=" & $replace($link, "/docs/", "")  & "&name=" & $name  
+        )};
+        
+        /* Итоговая выборака набора данных */
+        [$distinct($datalake.subProcess.(
+           {
+              "doc_id": $replace(%.business_process_link, "/docs/", ""),                           
+              "sub_process_link": $GetSubBusinessProcessLink(name),                             /* Ссылка расширенную карточку (бизнес-процесс) */ 
+              "sub_process_name": name,                                                         /* Имя связанного процесса (входящего или исходящего) */
+              "sub_process_is_incoming": is_incoming                                            /* Признак, что связанных процесс входящий */
+           }
+        )[doc_id=$doc_id and sub_process_is_incoming = $incoming])];
+       
+      )   
+
+  # Функциональные дорожки (роли)
+  business_processes.doc.lanes:
+    origin:
+      datalake: business_processes.dataset.main_dataset
+    type: table
+    location: "30. Функциональные дорожки (роли)"
+    headers:
+      - value: item_name
+        text:  Функциональная дорожка
+    source: >
+      (
+        /* Итоговая выборака набора данных */
+        [$distinct(datalake.lanes.( {"item_name": item_name} ))];
+      )
+
+  # Функциональные дорожки (роли)
+  business_processes.doc.data_objects:
+    origin:
+      datalake: business_processes.dataset.main_dataset
+    type: table
+    location: "40. Объекты данных бизнес-процессов"
+    headers:
+      - value: item_name
+        text: Объекты данных
+    source: >
+      (
+        /* Итоговая выборака набора данных */
+        [$distinct(datalake.data_objects.( {"item_name": item_name} ))];
+
+      )

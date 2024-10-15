@@ -1,0 +1,32 @@
+entities:
+
+  extended_business_processes_card:
+    title: Расширенная карточка бизнес-процесса
+    description: "Расширенная карточка бизнес-процесса"
+    presentations:
+      blank:
+        title: Расширенная карточка бизнес-процесса
+        type: markdown
+        template: templates/business_processes_card.md
+        source: >
+          (
+            $id := $params.id;
+            $name := $params.name;
+          
+            /* Документа с описанием бизнес-процесса выполянется по ключу, чтобы не использовать docs.$spread() + [отбор по ID], */
+            /* так как на большом объеме озера данных будут наблюдаться задржки обработки данных */
+          
+            $business_processes_obj := $lookup(docs, $id).extension; 
+          
+            /* Итоговая выборака набора данных */
+          
+            {
+              "doc_id": $id, 
+              "title": $name,
+              "description": $business_processes_obj.description,
+              "state": $business_processes_obj.state,
+              "state_update_date": $business_processes_obj.state_update_date,
+              "division_owner": $business_processes_obj.division_owner
+            }
+          
+          )

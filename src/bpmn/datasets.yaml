@@ -1,0 +1,147 @@
+datasets:
+
+  # Получение описания бизнес-процесса 10.1 в виде объекта
+  business_processes.dataset.bp_10_1:
+    origin:
+      bpmnjs: examples/test10_1.xml
+      datalake: "($)"
+    origin1:
+    source: >
+      (
+          $GetBusinessProcessEntities(bpmnjs.$, $GetBusinessProcessLink(datalake, $self));
+      )
+
+  # Получение описания бизнес-процесса 10.2 в виде объекта
+  business_processes.dataset.bp_10_2:
+    origin:
+      bpmnjs: examples/test10_2.xml
+      datalake: "($)"
+    source: >
+      (
+          $GetBusinessProcessEntities(bpmnjs.$, $GetBusinessProcessLink(datalake, $self));   
+      )      
+
+  # Получение описания бизнес-процесса 10.3 в виде объекта
+  business_processes.dataset.bp_10_3:
+    origin:
+      bpmnjs: examples/test10_3.xml
+      datalake: "($)"
+    source: > 
+      (
+          $GetBusinessProcessEntities(bpmnjs.$, $GetBusinessProcessLink(datalake, $self));   
+      )
+
+  # Основной набор данных с бизнес-процессами, используемый во всх прочих наборах данных и документах. Внути origin
+  # определяются (перечисляются) наборы с описанием бизнес-процессов
+  business_processes.dataset.main_dataset:
+    origin:
+      bp_10_1: business_processes.dataset.bp_10_1
+      bp_10_2: business_processes.dataset.bp_10_2
+      bp_10_3: business_processes.dataset.bp_10_3
+    source: >
+      (
+        [bp_10_1, bp_10_2, bp_10_3];
+      ) 
+
+  # Ошибки замкнутости бизнес-процессов
+  business_processes.dataset.business_process_closure_errors:
+    origin:
+      datalake: business_processes.dataset.main_dataset
+    source: >
+      (
+        /* Бизнес-процессы */
+        $datalake := datalake;
+      
+        $sub_process_data_objects := $datalake.subProcess.data_objects.(
+          {
+            "business_process_id": %.%.business_process_id,      /* ID процесса */
+            "business_process_name": %.%.business_process_name,  /* Имя процесса */
+            "business_process_link": %.%.business_process_link,  /* Ссылка на документ (бизнес-процесс) */
+            "sub_process_id": %.id,                              /* ID связанного процесса (входящего или исходящего) */
+            "sub_process_name": %.name,                          /* Имя связанного процесса (входящего или исходящего) */
+            "sub_process_is_incoming": %.is_incoming,            /* Признак, что связанных процесс входящий */
+            "data_object_id": data_object_id,                    /* ID объекта связанного процесса */ 
+            "data_object_name": data_object_name                 /* Имя объекта связанного процесса */
+          }
+        )^(business_process_id);
+      
+        /* Поиск связанного процесса, при этом поиск выполняется по следущему принципу:
+           - Имя связанного процесса (sub_process_name) используется для поиска в имени основного (business_process_name) и наоборот
+           - Имя объекта данных (data_object_name) должно совпадать
+           - Если связанный процесса входящий, то выполняется поиск исходящего процесса (sub_process_is_incoming)  */
+        $FindLinkedProcess := function($sub_process_name, $business_process_name, $data_object_name, $sub_process_is_incoming)
+        {(
+      
+          $exists($sub_process_data_objects[business_process_name=$sub_process_name 
+            and sub_process_is_incoming = $sub_process_is_incoming
+            and data_object_name = $data_object_name
+            and sub_process_name = $business_process_name])
+      
+        )};
+      
+        /* Итоговая выборака набора данных */
+        [$sub_process_data_objects.(
+          {
+            "business_process_id": business_process_id,                 /* ID процесса */
+            "business_process_name": business_process_name,             /* Имя процесса */
+            "business_process_link": business_process_link,             /* Ссылка на документ (бизнес-процесс) */
+            "sub_process_id": sub_process_id,                           /* ID связанного процесса (входящего или исходящего) */
+            "sub_process_name": sub_process_name,                       /* Имя связанного процесса (входящего или исходящего) */
+            "sub_process_is_incoming": sub_process_is_incoming,         /* Признак, что связанных процесс входящий */
+            "data_object_id": data_object_id,                           /* ID объекта связанного процесса */  
+            "data_object_name": data_object_name,                       /* Имя объекта связанного процесса */
+            "is_valid": $FindLinkedProcess(sub_process_name, business_process_name, data_object_name, (sub_process_is_incoming=true ? false : true))
+          }[is_valid=false]
+      
+        )];
+      
+      )
+
+  # Входящие или исходящие процессы без объектов или связей с шагами основного процесса
+  business_processes.dataset.business_processes_without_objects_or_links:
+    origin:
+      datalake: business_processes.dataset.main_dataset
+    source: >
+      (
+        /* Бизнес-процессы */
+        $datalake := datalake;
+      
+        /* Итоговая выборака набора данных */
+        [$sub_process_data_objects := $datalake.subProcess.(
+           {
+              "business_process_id": %.business_process_id,      /* ID процесса */
+              "business_process_name": %.business_process_name,  /* Имя процесса */
+              "business_process_link": %.business_process_link,  /* Ссылка на документ (бизнес-процесс) */
+              "sub_process_id": id,                              /* ID связанного процесса (входящего или исходящего) */
+              "sub_process_name": name,                          /* Имя связанного процесса (входящего или исходящего) */
+              "sub_process_is_incoming": is_incoming,            /* Признак, что связанных процесс входящий */
+              "is_valid": $exists(data_objects)
+           }[is_valid=false]
+        )^(business_process_id)];
+      
+      )
+
+  # Реестр (плоский список) бизнес-процессов
+  business_processes.dataset.business_processes_list:
+    origin:
+      datalake: business_processes.dataset.main_dataset
+    source: >
+      (
+        /* Бизнес-процессы */        
+        $datalake := datalake;
+
+        /* Путь к расширенной карточке бизнес-процесса */
+        $path_of_extended_card := "/entities/extended_business_processes_card/blank?id=";
+          
+        /* Итоговая выборака набора данных */
+        [$business_processes_list := $datalake.(
+           {
+              "business_process_id": business_process_id,                                                       /* ID процесса */
+              "business_process_name": business_process_name,                                                   /* Имя процесса */
+              "business_process_link": business_process_link,                                                   /* Ссылка на документ (бизнес-процесс) */ 
+              "business_process_card": $path_of_extended_card & $replace(business_process_link, "/docs/", "")   /* Ссылка расширенную карточку (бизнес-процесс) */
+                      & "&name=" & business_process_name  
+           }
+        )^(business_process_name)];
+
+      )
