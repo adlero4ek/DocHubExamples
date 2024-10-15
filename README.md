@@ -27,7 +27,7 @@
 14. [Entity Relationship диаграммы и диаграммы классов](src/DynamicEntityRelationshipDiagrams)
 15. [Динамическое изменение группировки компонент в представлении контекста](src/DynamicChangeOfContextGrouping)
 16. [Репозиторий чатбота корпоративного ИИ](src/aichatbot)
-17. [BPMN нотация описания бизнес-процессов с использованием bpmnjs](scr/bpmn)
+17. [BPMN нотация описания бизнес-процессов с использованием bpmnjs](src/bpmn)
 
 ## Разворачивание
 
